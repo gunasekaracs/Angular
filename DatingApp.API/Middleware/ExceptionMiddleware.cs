@@ -35,7 +35,7 @@ namespace API.Middleware
                 var response = env.IsDevelopment()
                     ? new ApiException(context.Response.StatusCode, e.Message, e.StackTrace?.ToString())
                     : new ApiException(context.Response.StatusCode, "Internal Server Error");
-                JsonSerializerOptions options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
                 var json = JsonSerializer.Serialize(response, options);
                 await context.Response.WriteAsync(json);
             }
