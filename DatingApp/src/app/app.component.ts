@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { User } from './models/User';
 import { AccountService } from './services/account.service';
+import { UserService } from './services/user.service';
 
 @Component({
   selector: 'app-root',
@@ -8,17 +9,13 @@ import { AccountService } from './services/account.service';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  title = 'The Dating App';
-  users: any;
-  constructor(private accountService: AccountService) { }
+  constructor(private accountService: AccountService, private userService: UserService) { }
   ngOnInit() {
     this.setCurrentUser();
   }
   setCurrentUser() {
-    const json: any = localStorage.getItem('user');
-    if (!!json) {
-      const user: User = JSON.parse(json);
+    const user: User | undefined = this.userService.getCurrentUser();
+    if (user != undefined) 
       this.accountService.setCurrentUser(user);
-    }
   }
 }
