@@ -7,7 +7,7 @@ namespace API.Controllers
 {
     public class BuggyController : BaseController
     {
-        private DataContext context;
+        private readonly DataContext context;
         public BuggyController(DataContext context)
         {
             this.context = context;
