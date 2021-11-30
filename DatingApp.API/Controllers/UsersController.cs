@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace API.Controllers
@@ -59,6 +60,34 @@ namespace API.Controllers
             if (await userRepository.SaveAllAsync())
                 return CreatedAtRoute("GetUser", new { username = User.GetUserName() }, mapper.Map<PhotoDto>(photo));
             return BadRequest("Problem adding photo");
+        }
+        [HttpPut("set-main-photo/{photoId}")]
+        public async Task<ActionResult> SetMainPhoto(int photoId)
+        {
+            var user = await userRepository.GetUserByUsernameAsync(User.GetUserName());
+            var photo = user.Photos.FirstOrDefault(x => x.Id == photoId);
+            if (photo.IsMain) return BadRequest("This is already your main photo");
+            var currentMain = user.Photos.FirstOrDefault(x => x.IsMain);
+            if (currentMain != null) currentMain.IsMain = false; ;
+            photo.IsMain = true;
+            if (await userRepository.SaveAllAsync()) return NoContent();
+            return BadRequest("Fail to set the main photo");
+        }
+        [HttpDelete("delete-photo/{photoId}")]
+        public async Task<ActionResult> DeletePhoto(int photoId)
+        {
+            var user = await userRepository.GetUserByUsernameAsync(User.GetUserName());
+            var photo = user.Photos.FirstOrDefault(x => x.Id == photoId);
+            if (photo == null) return NotFound();
+            if (photo.IsMain) return BadRequest("You cannot delete your main photo");
+            if (photo.PublicId != null)
+            {
+                var result = await photoService.DeletePhotoAsync(photo.PublicId);
+                if (result.Error != null) return BadRequest(result.Error.Message);
+            }
+            user.Photos.Remove(photo);
+            if (await userRepository.SaveAllAsync()) return Ok();
+            return BadRequest();
         }
     }
 }
